@@ -25,9 +25,6 @@ func (i *Injector) Initialize(object interface{}) error {
 }
 
 func (i *Injector) initializeObject(object reflect.Value) error {
-	if !object.IsZero() {
-		return nil
-	}
 	// Check if object itself is a fixed injectable value
 	for _, injectable := range i.InjectableValues {
 		if reflect.TypeOf(injectable).AssignableTo(object.Type()) {
