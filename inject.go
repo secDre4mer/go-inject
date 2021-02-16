@@ -42,7 +42,6 @@ func (i *Injector) initializeObject(object reflect.Value) error {
 		if err := i.initializeObject(newObject.Elem()); err != nil {
 			return err
 		}
-		i.InjectableValues = append(i.InjectableValues, newObject.Interface())
 		var initializationFailed bool
 		if initializable, isInitializable := newObject.Interface().(Initializable); isInitializable {
 			if err := initializable.Init(); err != nil {
@@ -55,6 +54,7 @@ func (i *Injector) initializeObject(object reflect.Value) error {
 		}
 		if !initializationFailed {
 			object.Set(newObject)
+			i.InjectableValues = append(i.InjectableValues, newObject.Interface())
 		}
 		return nil
 	case reflect.Struct:
