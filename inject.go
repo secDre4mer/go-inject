@@ -6,8 +6,8 @@ import (
 )
 
 type Injector struct {
-	InjectableValues   []interface{}
-	FailOnUninjectable bool
+	InjectableValues          []interface{}
+	FailOnUninjectable        bool
 	FailOnInitializationError bool
 }
 
@@ -20,8 +20,7 @@ func (i *Injector) Initialize(object interface{}) error {
 	if value.Kind() != reflect.Ptr {
 		panic("Must pass pointer to injectable object to injector")
 	}
-	i.initializeObject(value.Elem())
-	return nil
+	return i.initializeObject(value.Elem())
 }
 
 func (i *Injector) initializeObject(object reflect.Value) error {
@@ -39,20 +38,18 @@ func (i *Injector) initializeObject(object reflect.Value) error {
 		if err := i.initializeObject(newObject.Elem()); err != nil {
 			return err
 		}
-		var initializationFailed bool
 		if initializable, isInitializable := newObject.Interface().(Initializable); isInitializable {
 			if err := initializable.Init(); err != nil {
 				if i.FailOnInitializationError {
 					return err
 				} else {
-					initializationFailed = true
+					// Set newObject to a nil pointer of the fitting type
+					newObject = reflect.New(object.Type()).Elem()
 				}
 			}
 		}
-		if !initializationFailed {
-			object.Set(newObject)
-			i.InjectableValues = append(i.InjectableValues, newObject.Interface())
-		}
+		object.Set(newObject)
+		i.InjectableValues = append(i.InjectableValues, newObject.Interface())
 		return nil
 	case reflect.Struct:
 		for fi := 0; fi < object.NumField(); fi++ {
